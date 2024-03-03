@@ -1,0 +1,143 @@
+#HOME{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+#nag{
+    width: 94%;
+    height: fit-content;
+    display: flex;
+    padding:10px 3%;
+    background: rgb(232, 232, 232);
+    box-shadow: 0px 5px 20px #8a8a8a;
+    border-radius: 0 0 10px 10px ;
+}
+
+#app-name{
+    flex-grow: 1;
+    font-size: 25px;
+    height:fit-content;
+}
+#link{
+    width: fit-content;
+    height: fit-content;
+
+}
+
+.link-btn{
+    display: inline-block;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    margin: 0 10px;
+
+}
+
+
+#main{
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+
+
+}
+
+#file-list{
+    width: 60%;
+    height: 98%;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    background: rgb(232, 232, 232);
+    box-shadow: 0px 0px 20px #8a8a8a;
+
+
+}
+#preview{
+    flex-grow: 1;
+    height: 98%;
+    border-radius: 10px;
+    background: rgb(232, 232, 232);
+    box-shadow: 0px 5px 20px #8a8a8a;
+}
+
+#tool-column{
+    width: 98%;
+    height: fit-content;
+    margin: auto;
+    margin-top: 10px;
+    border-radius: 10px;
+    background:transparent;
+    border: #6262ff solid 1.5px;
+}
+
+#route-column{
+    width: 98%;
+    height: fit-content;
+    word-break: break-word;
+    font-size: 15px;
+}
+
+#list-area{
+    width: 98%;
+
+    flex-grow: 1;
+    margin: auto;
+    overflow-y: auto;
+}
+
+.tool-column-item{
+    width: fit-content;
+    height: fit-content;
+    display: inline-block;
+    font-size: 17px;
+    color: white;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(0, 0, 255, 0.49);
+
+}
+
+FileListAreaRowFrame{
+    display: block;
+    width: 90%;
+    height: fit-content;
+    word-break: break-word;
+    background: rgba(199, 199, 199, 0.76);
+    border-radius: 10px;
+    margin:5px auto;
+    padding: 10px 5%;
+    font-size: 22px;
+
+
+}
+
+FileListAreaRowFrame:hover{
+    background: rgba(98, 98, 255, 0.6);
+}
+
+aaa{
+
+}
+
+.file-preview-btn{
+    display: block;
+    width: 90%;
+    height: fit-content;
+    text-align: left;
+    margin: 10px auto;
+    padding: 5px 5%;
+    background: rgb(208, 208, 208);
+    color: rgb(42, 42, 42);
+    border: none;
+    border-radius: 10px;
+    font-size: 20px;
+}
