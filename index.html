@@ -1,0 +1,223 @@
+<!--
+项目名称：网盘应用示例
+描述：一个简单的网盘示例，包含上传文件和获取文件直链，复制下载链接，删除下载链接，自动检测文件的实效性等功能。
+作者：（首席执行官林少谨）
+
+问题和反馈：如有任何问题或反馈，请联系作者
+-->
+
+
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网盘应用</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.card-title {
+    font-weight: bold;
+    overflow-x: auto;
+    white-space: nowrap;
+    margin-bottom: 5px;
+}
+.card-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.card-button {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+.card-button:hover {
+    background-color: #0056b3;
+}
+.download-link {
+    overflow-x: auto;
+    white-space: nowrap;
+    margin-bottom: 5px; 
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>网盘应用</h1>
+
+    <div id="app">
+        <h2>上传文件</h2>
+        <form @submit.prevent="handleFileUpload">
+            <label for="file">选择文件：</label>
+            <input type="file" id="file" ref="fileInput"><br>
+            <input type="submit" value="上传文件" :disabled="isUploading">
+        </form>
+        <div id="uploadResult">{{ uploadMessage }}</div>
+
+        <h2>文件列表</h2>
+        <div class="card" v-for="(file, index) in files" :key="index">
+            <div class="card-title">{{ file.name }}</div>
+            <div>文件大小：{{ (file.size / (1024 * 1024)).toFixed(2) }} MB</div>
+            <div>取件码：{{ file.get_code }}</div>
+            <div>上传时间：{{ file.uploadTime }}</div>
+            <div class="download-link" v-if="file.showDownloadLink">文件直链：{{ file.downloadLink }}</div>
+            <div class="card-buttons">
+                <button @click="getDownloadLink(file)" class="card-button" v-if="!file.isDownloadLinkClicked">获取下载链接</button>
+                <button @click="copyDownloadLink(file.downloadLink)" class="card-button">复制下载链接</button>
+                <button @click="deleteFile(index)" class="card-button">删除文件</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        files: [],
+        uploadMessage: '',
+        isUploading: false // 是否正在上传
+    },
+    created() {
+        this.loadFiles();
+        this.checkFilesExistence(); // 检测文件列表中的文件是否存在
+    },
+    methods: {
+        loadFiles() {
+            // 在页面加载时从本地存储中加载文件列表
+            const storedFiles = localStorage.getItem('files');
+            if (storedFiles) {
+                this.files = JSON.parse(storedFiles);
+            }
+        },
+        saveFiles() {
+            // 保存文件列表到本地存储
+            localStorage.setItem('files', JSON.stringify(this.files));
+        },
+        handleFileUpload() {
+            const file = this.$refs.fileInput.files[0];
+            if (!this.isUploading) {
+                this.isUploading = true; // 禁用上传按钮
+                this.uploadFile(file);
+            }
+        },
+        uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('http://file.unhis.cn/api/upfile.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === '1') {
+                    this.files.push({
+                        name: file.name,
+                        size: file.size,
+                        uploadTime: new Date().toLocaleString(),
+                        get_code: data.get_code,
+                        downloadLink: '',
+                        showDownloadLink: false,
+                        isDownloadLinkClicked: false // 用户是否点击获取下载链接
+                    });
+                    this.uploadMessage = `上传成功，取件码为：${data.get_code}`;
+                    this.$refs.fileInput.value = ''; // 清空文件输入框的值
+                    this.saveFiles(); // 保存文件列表到本地存储
+                } else {
+                    this.uploadMessage = `上传失败：${data.msg}`;
+                }
+            })
+            .catch(error => {
+                console.error('上传文件时发生错误：', error);
+            })
+            .finally(() => {
+                this.isUploading = false; // 启用上传按钮
+            });
+        },
+        getDownloadLink(file) {
+            fetch('http://file.unhis.cn/api/downfile.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `gcode=${file.get_code}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === '1') {
+                    file.downloadLink = `http://file.unhis.cn${data.durl}`;
+                    file.showDownloadLink = true; // 显示下载链接
+                    file.isDownloadLinkClicked = true; // 用户已点击获取下载链接
+                    this.saveFiles(); // 保存文件列表到本地存储
+                } else {
+                    file.downloadLink = `获取文件直链失败：${data.msg}`;
+                    this.deleteFileByGetCode(file.get_code); // 删除获取直链失败的文件
+                }
+            })
+            .catch(error => {
+                console.error('获取文件直链时发生错误：', error);
+                file.downloadLink = `获取文件直链失败：${error}`;
+                this.deleteFileByGetCode(file.get_code); // 删除获取直链失败的文件
+            });
+        },
+        copyDownloadLink(link) {
+            const el = document.createElement('textarea');
+            el.value = link;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        },
+        checkFilesExistence() {
+            // 检测文件列表中的文件是否存在
+            this.files.forEach((file, index) => {
+                this.getDownloadLink(file); // 检测下载链接实效性
+            });
+        },
+        deleteFile(index) {
+            if (confirm('确定要删除该文件吗？')) {
+                this.files.splice(index, 1);
+                this.saveFiles(); // 保存文件列表到本地存储
+            }
+        },
+        deleteFileByGetCode(getCode) {
+            // 根据取件码删除文件
+            const index = this.files.findIndex(file => file.get_code === getCode);
+            if (index !== -1) {
+                this.files.splice(index, 1);
+                this.saveFiles(); // 保存文件列表到本地存储
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
